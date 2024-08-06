@@ -18,7 +18,7 @@ class CellEnv(gym.Env):
         self.step_count += 1
         old_state = self.previous_concentration
         # Apply antibiotic if action is 1
-        t, tot, cost, next_state = self.cell_population.simulate_population(action, delta_t=1)
+        t, tot, cost, next_state = self.cell_population.simulate_population(action, delta_t=0.2)
         next_state = float(next_state) / 1000
         self.previous_concentration = next_state
         # Calculate reward
