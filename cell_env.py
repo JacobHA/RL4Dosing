@@ -14,6 +14,7 @@ class CellEnv(gym.Env):
         # Initialize the cell population model
         self.cell_population = Cell_Population(**kwargs)
         # self.previous_cost = None
+        self.id = 'CellEnv-v0'
 
 
     def step(self, action):
