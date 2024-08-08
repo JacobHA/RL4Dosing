@@ -4,8 +4,9 @@ import random
 from cell_model_pop_fde import Cell_Population
 
 class CellEnv(gym.Env):
-    def __init__(self, frame_stack=20, dt=0.15, **kwargs):
+    def __init__(self, frame_stack=20, dt=0.15, alpha_mem=1, **kwargs):
         self.dt = dt
+        self.alpha_mem = alpha_mem
         # Use binary actions: apply antibiotic or not
         self.action_space = gym.spaces.Discrete(2)
         # Use continuous observations: cell population (or concentration)
@@ -21,7 +22,7 @@ class CellEnv(gym.Env):
         self.step_count += 1
         # old_cost = self.previous_cost
         # Apply antibiotic if action is 1
-        t, tot, cost, p_final = self.cell_population.simulate_population(action, delta_t=self.dt, alpha_mem=0.7)
+        t, tot, cost, p_final = self.cell_population.simulate_population(action, delta_t=self.dt, alpha_mem=self.alpha_mem)
         # next_state = float(next_state) #/ 1000
         # self.previous_cost = cost
         # todo: make this a deque:

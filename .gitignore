@@ -4,3 +4,5 @@ rl-logs
 *.pyc
 *.zip
 *.tfevents.*
+wandb
+*.pth
