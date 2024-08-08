@@ -9,7 +9,7 @@ from gymnasium.wrappers import TimeLimit
 sys.path.append('avg_rwds')
 from UAgent import UAgent
 
-sweep_id = 'h3r48tee'  # Ensure this is the correct sweep ID
+sweep_id = '7v9je8xg'  # Ensure this is the correct sweep ID
 
 int_hparams = {'train_freq', 'gradient_steps'}
 
@@ -24,7 +24,7 @@ from cell_env import CellEnv
 env = CellEnv(dt=0.15, frame_stack=10, alpha_mem=0.7)
 env = TimeLimit(env, 1000)
 
-def main(algo=None, project=None, ft_params=None, log_dir='tf_logs', device='cpu'):
+def main(log_dir='tf_logs', device='auto'):
     total_timesteps = 250_000
     runs_per_hparam = 2
     avg_auc = 0
