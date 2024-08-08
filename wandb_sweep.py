@@ -9,8 +9,6 @@ from gymnasium.wrappers import TimeLimit
 sys.path.append('avg_rwds')
 from UAgent import UAgent
 
-sweep_id = '7v9je8xg'  # Ensure this is the correct sweep ID
-
 int_hparams = {'train_freq', 'gradient_steps'}
 
 # Load text from settings file
@@ -60,6 +58,6 @@ if __name__ == '__main__':
     # Run a hyperparameter sweep with W&B
     print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/h3r48tee'  # Ensure this is the correct sweep ID
+    sweep_id = 'jacobhadamczyk/iaifi-hackathon/7v9je8xg'  # Ensure this is the correct sweep ID
     wandb.agent(sweep_id, function=main, count=args.count)
     wandb.finish()

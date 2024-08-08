@@ -24,4 +24,7 @@ conda activate iaifi
 # - username should be replaced by your username
 # - path-to-directory should be replaced by the path to your directory where the executable is
 
+
+python wandb_sweep.py &
+python wandb_sweep.py &
 python wandb_sweep.py
