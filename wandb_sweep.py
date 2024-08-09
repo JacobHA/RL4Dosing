@@ -9,8 +9,6 @@ from gymnasium.wrappers import TimeLimit
 sys.path.append('avg_rwds')
 from avg_rwds.UAgent import UAgent
 
-sweep_id = 'h3r48tee'  # Ensure this is the correct sweep ID
-
 int_hparams = {'train_freq', 'gradient_steps'}
 
 # Load text from settings file
@@ -24,7 +22,7 @@ from cell_env import CellEnv
 env = CellEnv(dt=0.15, frame_stack=10, alpha_mem=0.7)
 env = TimeLimit(env, 1000)
 
-def main(algo=None, project=None, ft_params=None, log_dir='tf_logs', device='cpu'):
+def main(log_dir='tf_logs', device='auto'):
     total_timesteps = 250_000
     runs_per_hparam = 2
     avg_auc = 0
@@ -60,6 +58,6 @@ if __name__ == '__main__':
     # Run a hyperparameter sweep with W&B
     print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/h3r48tee'  # Ensure this is the correct sweep ID
+    sweep_id = 'jacobhadamczyk/iaifi-hackathon/7v9je8xg'  # Ensure this is the correct sweep ID
     wandb.agent(sweep_id, function=main, count=args.count)
     wandb.finish()
