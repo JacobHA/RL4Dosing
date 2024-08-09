@@ -7,7 +7,7 @@ import sys
 from gymnasium.wrappers import TimeLimit
 
 sys.path.append('avg_rwds')
-from UAgent import UAgent
+from avg_rwds.UAgent import UAgent
 
 sweep_id = 'h3r48tee'  # Ensure this is the correct sweep ID
 
