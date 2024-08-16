@@ -22,11 +22,11 @@ except KeyError:
     WANDB_DIR = None
     
 
-env = CellEnv(dt=0.1, frame_stack=10, alpha_mem=0.7, max_timesteps=500)
-eval_env = CellEnv(dt=0.1, frame_stack=10, alpha_mem=0.7, max_timesteps=500)
+env = Monitor(CellEnv(dt=0.1, frame_stack=10, alpha_mem=0.7, max_timesteps=500))
+eval_env = Monitor(CellEnv(dt=0.1, frame_stack=10, alpha_mem=0.7, max_timesteps=500))
 
 def main(log_dir='tf_logs', device='auto'):
-    total_timesteps = 250_000
+    total_timesteps = 200_000
     runs_per_hparam = 1
     avg_auc = 0
 
@@ -50,13 +50,10 @@ def main(log_dir='tf_logs', device='auto'):
                              )
             # Choose the algo appropriately
             agent = DQN('MlpPolicy',
-                        env, **config, device=device, log_interval=5_000,
-                        tensorboard_log=log_dir, render=False)
+                        env, **config, device=device,
+                        tensorboard_log=log_dir)
 
 
-
-            # Measure the time it takes to learn
-            
             agent.learn(total_timesteps=total_timesteps, tb_log_name="dqn",
                         callback=eval_callback)
             del agent
@@ -69,6 +66,6 @@ if __name__ == '__main__':
     # Run a hyperparameter sweep with W&B
     print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/7v9je8xg'  # Ensure this is the correct sweep ID
+    sweep_id = 'jacobhadamczyk/iaifi-hackathon/yo38q5fb'  # Ensure this is the correct sweep ID
     wandb.agent(sweep_id, function=main, count=args.count)
     wandb.finish()
