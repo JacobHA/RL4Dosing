@@ -5,9 +5,13 @@ import argparse
 import yaml
 import sys
 from gymnasium.wrappers import TimeLimit
+from cell_env import CellEnv
+from stable_baselines3.common.vec_env import DummyVecEnv
+from gymnasium.wrappers import TimeLimit
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.dqn import DQN
 
-sys.path.append('avg_rwds')
-from avg_rwds.UAgent import UAgent
 
 int_hparams = {'train_freq', 'gradient_steps'}
 
@@ -17,14 +21,13 @@ try:
 except KeyError:
     WANDB_DIR = None
     
-from cell_env import CellEnv
 
-env = CellEnv(dt=0.15, frame_stack=10, alpha_mem=0.7)
-env = TimeLimit(env, 1000)
+env = CellEnv(dt=0.1, frame_stack=10, alpha_mem=0.7, max_timesteps=500)
+eval_env = CellEnv(dt=0.1, frame_stack=10, alpha_mem=0.7, max_timesteps=500)
 
 def main(log_dir='tf_logs', device='auto'):
     total_timesteps = 250_000
-    runs_per_hparam = 2
+    runs_per_hparam = 1
     avg_auc = 0
 
     for i in range(runs_per_hparam):
@@ -40,14 +43,22 @@ def main(log_dir='tf_logs', device='auto'):
             config = cfg.as_dict()
 
 
+            eval_callback = EvalCallback(eval_env, best_model_save_path=f'.sweep-models/{run.name}/',
+                             n_eval_episodes=10,
+                             log_path='./rl-logs/', eval_freq=5_000,
+                             deterministic=True, render=False,
+                             )
             # Choose the algo appropriately
-            agent = UAgent(env, **config, device=device, log_interval=5000,
-                           tensorboard_log=log_dir, render=False)
+            agent = DQN('MlpPolicy',
+                        env, **config, device=device, log_interval=5_000,
+                        tensorboard_log=log_dir, render=False)
+
+
 
             # Measure the time it takes to learn
-            agent.learn(total_timesteps=total_timesteps)
-            avg_auc += agent.eval_auc
-            wandb.log({'avg_auc': avg_auc / runs_per_hparam})
+            
+            agent.learn(total_timesteps=total_timesteps, tb_log_name="dqn",
+                        callback=eval_callback)
             del agent
 
 if __name__ == '__main__':

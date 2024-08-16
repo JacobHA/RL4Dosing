@@ -3,19 +3,19 @@ parameters:
   batch_size:
     values: [ 16, 32, 64, 128 ]
   buffer_size:
-    values: [ 100000 ]
+    values: [ 10000, 100000 ]
   gradient_steps:
-    values: [ 1, 2, 4, 6, 8, 10 ]
+    values: [ 1, 2, 4, 10 ]
   learning_rate:
     values: [  0.0005, 0.0008, 0.001, 0.002 ]
   target_update_interval:
     values: [ 100, 500, 1000, 2000, 5000, 10000 ]
   train_freq:
-    values: [ 1, 2, 4 ]
+    values: [ 1 ]
   learning_starts:
     values: [ 0, 5000 ]
-  beta:
-    values: [ 0.75, 1, 2, 3, 4, 5, 10 ]
+  exploration_fraction:
+    values: [ 0.1, 0.25, 0.3, 0.4, 0.5, 0.75, 0.9 ]
   tau_theta:
     values: [ 0.005, 0.007, 0.01, 0.02, 0.05 ]
   prior_tau:
