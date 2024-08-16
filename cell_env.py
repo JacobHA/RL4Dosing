@@ -1,10 +1,11 @@
 import gymnasium as gym
 import numpy as np
 import random
-from cell_model_pop_fde import Cell_Population
+from cell_model_pop_fde_slow_sde import Cell_Population
+from gymnasium.wrappers import TimeLimit
 
 class CellEnv(gym.Env):
-    def __init__(self, frame_stack=20, dt=0.15, alpha_mem=1, **kwargs):
+    def __init__(self, frame_stack=10, dt=0.1, alpha_mem=1, sigma=0.0, max_timesteps=100, **kwargs):
         self.dt = dt
         self.alpha_mem = alpha_mem
         # Use binary actions: apply antibiotic or not
@@ -13,32 +14,40 @@ class CellEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=-1, high=1, shape=(frame_stack,), dtype=np.float32)
         self.frame_stack = frame_stack
         # Initialize the cell population model
-        self.cell_population = Cell_Population(**kwargs)
+        T_final = max_timesteps * dt
+        self.cell_population = Cell_Population(T_final, delta_t=dt, alpha_mem=alpha_mem, sigma=sigma, **kwargs)
         # self.previous_cost = None
         self.id = 'CellEnv-v0'
+        # wrap in TimeLimit
+        self.max_timesteps = max_timesteps
+        self.step_count = 0
+
+        self = TimeLimit(self, max_episode_steps=max_timesteps)
 
 
     def step(self, action):
         self.step_count += 1
-        # old_cost = self.previous_cost
-        # Apply antibiotic if action is 1
-        t, tot, cost, p_final = self.cell_population.simulate_population(action, delta_t=self.dt, alpha_mem=self.alpha_mem)
-        # next_state = float(next_state) #/ 1000
-        # self.previous_cost = cost
+        truncated = False
+        if self.step_count == self.max_timesteps:
+            truncated = True
+            cost = 0
+            tot = None
+        else:
+            t, tot, cost = self.cell_population.simulate_population(action, delta_t=self.dt, plot=False)
+            tot = np.mean(tot)
+
         # todo: make this a deque:
         self.stacked_states.pop(0)
         self.stacked_states.append(cost)
         # Calculate reward
         reward = -cost
-        # possible define termination signal if next_state=0 or above some threshold?
-        n_cells = tot
 
-        return np.array(self.stacked_states, dtype=np.float32), reward, False, False, {'n_cells': tot}
+        return np.array(self.stacked_states, dtype=np.float32), reward, False, truncated, {'n_cells': tot}
 
     def reset(self, seed=None):
         self.step_count = 0
         self.seed(seed)
-        self.cell_population.initialize()
+        self.cell_population.initialize(h=2**(-5))
         state = 0.0# self.cell_population.init_conditions
         n_cells = self.cell_population.init_conditions.sum()
         # state = float(state) / 1000
