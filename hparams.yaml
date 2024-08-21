@@ -20,3 +20,5 @@ parameters:
     distribution: uniform
     max: 0.8
     min: 0.25
+  frames:
+    values: [ 5, 10, 20, 30, 40, 50 ]
