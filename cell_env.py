@@ -3,6 +3,7 @@ import numpy as np
 import random
 from cell_model_pop_fde_slow_sde import Cell_Population
 from gymnasium.wrappers import TimeLimit
+from collections import deque
 
 class CellEnv(gym.Env):
     def __init__(self, frame_stack=10, dt=0.1, alpha_mem=1, sigma=0.0, max_timesteps=100, **kwargs):
@@ -36,9 +37,8 @@ class CellEnv(gym.Env):
             t, tot, cost = self.cell_population.simulate_population(action, delta_t=self.dt, plot=False)
             tot = np.mean(tot)
 
-        # todo: make this a deque:
-        self.stacked_states.pop(0)
-        self.stacked_states.append(cost)
+        # Add to the state:
+        self.stacked_states.append(tot)
         # Calculate reward
         reward = -cost
 
@@ -48,11 +48,11 @@ class CellEnv(gym.Env):
         self.step_count = 0
         self.seed(seed)
         self.cell_population.initialize(h=2**(-5))
-        state = 0.0# self.cell_population.init_conditions
+        state = 0.0
         n_cells = self.cell_population.init_conditions.sum()
-        # state = float(state) / 1000
+
         self.previous_cost = state
-        self.stacked_states = [state] * self.frame_stack
+        self.stacked_states = deque([state] * self.frame_stack, maxlen=self.frame_stack)
         return np.array(self.stacked_states, dtype=np.float32), {'n_cells': n_cells}
 
     def render(self, mode='human'):
