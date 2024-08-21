@@ -7,3 +7,4 @@ rl-logs
 wandb
 *.pth
 outfiles
+*.sh

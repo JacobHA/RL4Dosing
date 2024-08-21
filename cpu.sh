@@ -10,7 +10,7 @@
 #SBATCH --error=outfiles/%j.err
 #SBATCH --output=outfiles/%j.out
 ##SBATCH --partition=AMD6276
-##SBATCH --partition=Intel
+#SBATCH --partition=Intel
 ##SBATCH --partition=AMD6128
 
 #SBATCH --array=1-20

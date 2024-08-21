@@ -1,47 +1,76 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from gymnasium.wrappers import TimeLimit
+from cell_env import CellEnv
+import multiprocessing as mp
+from stable_baselines3 import DQN
 
-def evaluate_model(env_class, max_steps, num_episodes, model=None):
+
+def run_episode(env_args, model_str=None):
+    # Initialize the environment
+    env = CellEnv(**env_args)
+    if model_str is not None:
+        model = DQN.load(model_str)
+
+    done = False
+    obs, _ = env.reset()
+    episode_observations = []
+    action_sequence = []
+    while not done:
+        if model_str is not None:
+            action, _states = model.predict(obs)
+        else:
+            action = env.action_space.sample()
+        obs, rewards, term, trunc, info = env.step(action)
+        done = term or trunc
+        if not done:
+            episode_observations.append(info['n_cells'])
+            action_sequence.append(action)
+    
+    return episode_observations, action_sequence
+
+def evaluate_model(env_args, num_episodes, model_str=None, multiprocess=False):
     """
     Evaluate the model over several episodes and plot the results.
 
     Parameters:
     - model: Trained RL model to be evaluated.
-    - env_class: Environment class to create new instances of the evaluation environment.
-    - max_steps: Maximum number of steps per episode.
+    - eval_env: The evaluation environment instance.
     - num_episodes: Number of episodes to evaluate.
+    - multiprocess: Boolean flag to enable multiprocessing.
 
     Returns:
     - avg_observations: Average observations at each step.
     - all_observations: List of observations for all episodes.
     """
     all_observations = []
+    all_actions = []
 
-    for _ in range(num_episodes):
-        eval_env = TimeLimit(env_class(), max_steps)
-        done = False
-        obs, _ = eval_env.reset()
-        episode_observations = []
-        while not done:
-            if model is not None:
-                action, _states = model.predict(obs)
-            else:
-                action = eval_env.action_space.sample()
-            obs, rewards, term, trunc, info = eval_env.step(action)
-            done = term or trunc
-            episode_observations.append(info['n_cells'])
-        
-        all_observations.append(episode_observations)
+    if multiprocess:
+        with mp.Pool(mp.cpu_count() - 1) as pool:
+            results = pool.starmap(run_episode, [(env_args, model_str)] * num_episodes)
+   
+        # Unpack the results
+        all_observations, all_actions = zip(*results)
     
+    else:
+        # load the model and env:
+        eval_env = CellEnv(**env_args)
+        model = DQN.load(model_str)
+
+        for _ in range(num_episodes):
+            obs, actions = run_episode(eval_env, model)
+            all_observations.append(obs)
+            all_actions.append(actions)
+
     # Compute the average observations
     max_len = max(len(obs) for obs in all_observations)
     avg_observations = np.zeros(max_len)
     counts = np.zeros(max_len)
     
     for obs in all_observations:
-        for i, val in enumerate(obs):
-            avg_observations[i] += val[-1]
+        for i, val in enumerate(obs[:-1]):
+            avg_observations[i] += val
             counts[i] += 1
     
     avg_observations /= counts
@@ -51,7 +80,14 @@ def evaluate_model(env_class, max_steps, num_episodes, model=None):
 
 
 
-def plot_observations(avg_observations, all_observations, unif_obs=None, all_unif_obs=None):
+def plot_observations(env_args: dict, 
+                      avg_observations: np.ndarray,
+                      all_observations: np.ndarray,
+                      unif_obs=None,
+                      all_unif_obs=None,
+                      alpha_val=0.05,
+                      log_axis='',
+                      ):
     """
     Plot the average observations and individual episode tracks.
 
@@ -60,15 +96,17 @@ def plot_observations(avg_observations, all_observations, unif_obs=None, all_uni
     - all_observations: List of observations for all episodes.
     """
     plt.figure(figsize=(12, 8))
-    x_axis = np.linspace(0, 0.15*len(avg_observations), len(avg_observations))
+    dt = env_args['dt']
+    max_timesteps = env_args['max_timesteps']
+    x_axis = np.linspace(0, dt*max_timesteps, max_timesteps-1)
     
     # Plot individual episode tracks with lower alpha
     for obs in all_observations:
-        plt.plot(x_axis, obs, alpha=0.05, linewidth=0.5, color='black')
+        plt.plot(x_axis, obs, alpha=alpha_val, linewidth=0.5, color='black')
 
     if unif_obs is not None:
         for obs in all_unif_obs:
-            plt.plot(x_axis, obs, alpha=0.05, linewidth=0.5, color='red')
+            plt.plot(x_axis, obs, alpha=alpha_val, linewidth=0.5, color='red')
     
     # Plot average observations
     plt.plot(x_axis, avg_observations, label='trained policy', linewidth=3, color='black')
@@ -79,5 +117,8 @@ def plot_observations(avg_observations, all_observations, unif_obs=None, all_uni
     plt.ylabel('Total cells (n_cells)')
     plt.title('Model Evaluation: Average Observations and Individual Episode Tracks')
     plt.legend()
-    plt.yscale('log')
+    if 'x' in log_axis:
+        plt.xscale('log')
+    if 'y' in log_axis:
+        plt.yscale('log')
     plt.show()
