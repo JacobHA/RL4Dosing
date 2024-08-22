@@ -23,11 +23,11 @@ except KeyError:
 env_args = {
     'dt': 0.1,
     'alpha_mem': 0.7,
-    'max_timesteps': 100
+    'max_timesteps': 1000
 }    
 
 def main(log_dir='tf_logs', device='auto'):
-    total_timesteps = 100_000
+    total_timesteps = 200_000
     runs_per_hparam = 1
     avg_auc = 0
 
@@ -52,7 +52,7 @@ def main(log_dir='tf_logs', device='auto'):
 
             eval_callback = EvalCallback(eval_env, best_model_save_path=f'.sweep-models/{run.name}/',
                              n_eval_episodes=10,
-                             log_path='./rl-logs/', eval_freq=1000,
+                             log_path='./rl-logs/', eval_freq=5000,
                              deterministic=True, render=False,
                              )
             # Choose the algo appropriately
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     # Run a hyperparameter sweep with W&B
     print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/j3ivhrh2'  # Ensure this is the correct sweep ID
+    sweep_id = 'jacobhadamczyk/iaifi-hackathon/ruv9zcr7'  # Ensure this is the correct sweep ID
     wandb.agent(sweep_id, function=main, count=args.count)
     wandb.finish()
 
