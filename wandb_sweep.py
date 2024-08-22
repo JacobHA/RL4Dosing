@@ -23,7 +23,7 @@ except KeyError:
 env_args = {
     'dt': 0.1,
     'alpha_mem': 0.7,
-    'max_timesteps': 500
+    'max_timesteps': 100
 }    
 
 def main(log_dir='tf_logs', device='auto'):
@@ -52,7 +52,7 @@ def main(log_dir='tf_logs', device='auto'):
 
             eval_callback = EvalCallback(eval_env, best_model_save_path=f'.sweep-models/{run.name}/',
                              n_eval_episodes=10,
-                             log_path='./rl-logs/', eval_freq=500,
+                             log_path='./rl-logs/', eval_freq=1000,
                              deterministic=True, render=False,
                              )
             # Choose the algo appropriately

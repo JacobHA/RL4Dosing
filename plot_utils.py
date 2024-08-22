@@ -63,27 +63,14 @@ def evaluate_model(env_args, num_episodes, model_str=None, multiprocess=False):
             all_observations.append(obs)
             all_actions.append(actions)
 
-    # Compute the average observations
-    max_len = max(len(obs) for obs in all_observations)
-    avg_observations = np.zeros(max_len)
-    counts = np.zeros(max_len)
-    
-    for obs in all_observations:
-        for i, val in enumerate(obs[:-1]):
-            avg_observations[i] += val
-            counts[i] += 1
-    
-    avg_observations /= counts
-
-    return avg_observations, all_observations
-
-
+    # convert to numpy arrays
+    all_observations = np.array(all_observations)
+    all_actions = np.array(all_actions)
+    return all_observations, all_actions
 
 
 def plot_observations(env_args: dict, 
-                      avg_observations: np.ndarray,
                       all_observations: np.ndarray,
-                      unif_obs=None,
                       all_unif_obs=None,
                       alpha_val=0.05,
                       log_axis='',
@@ -104,19 +91,52 @@ def plot_observations(env_args: dict,
     for obs in all_observations:
         plt.plot(x_axis, obs, alpha=alpha_val, linewidth=0.5, color='black')
 
-    if unif_obs is not None:
+    if all_unif_obs is not None:
         for obs in all_unif_obs:
             plt.plot(x_axis, obs, alpha=alpha_val, linewidth=0.5, color='red')
     
     # Plot average observations
+    avg_observations = all_observations.mean(axis=0)
     plt.plot(x_axis, avg_observations, label='trained policy', linewidth=3, color='black')
-    if unif_obs is not None:
+    if all_unif_obs is not None:
+        unif_obs = all_unif_obs.mean(axis=0)
         plt.plot(x_axis, unif_obs, label='random policy', linewidth=3, color='red')
     
     plt.xlabel('Time (hours)')
     plt.ylabel('Total cells (n_cells)')
     plt.title('Model Evaluation: Average Observations and Individual Episode Tracks')
     plt.legend()
+    if 'x' in log_axis:
+        plt.xscale('log')
+    if 'y' in log_axis:
+        plt.yscale('log')
+    plt.show()
+
+def plot_actions(env_args: dict,
+                all_actions: np.ndarray,
+                alpha_val=0.05,
+                log_axis='',
+                ):
+    """
+    Plot the average actions and individual episode tracks.
+    """
+
+    plt.figure(figsize=(12, 8))
+    dt = env_args['dt']
+    max_timesteps = env_args['max_timesteps']
+    x_axis = np.linspace(0, dt*max_timesteps, max_timesteps-1)
+
+    # Plot individual episode tracks with lower alpha
+    for actions in all_actions:
+        plt.plot(x_axis, actions, alpha=alpha_val, linewidth=0.5, color='black')
+    
+    # plot mean actions:
+    avg_actions = all_actions.mean(axis=0)
+    plt.plot(x_axis, avg_actions, label='mean actions', linewidth=3, color='black')
+
+    plt.xlabel('Time (hours)')
+    plt.ylabel('Action')
+    plt.title('Model Evaluation: Average Actions and Individual Episode Tracks')
     if 'x' in log_axis:
         plt.xscale('log')
     if 'y' in log_axis:
