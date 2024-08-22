@@ -82,7 +82,7 @@ def plot_observations(env_args: dict,
     - avg_observations: Average observations at each step.
     - all_observations: List of observations for all episodes.
     """
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(6, 4))
     dt = env_args['dt']
     max_timesteps = env_args['max_timesteps']
     x_axis = np.linspace(0, dt*max_timesteps, max_timesteps-1)
@@ -121,7 +121,7 @@ def plot_actions(env_args: dict,
     Plot the average actions and individual episode tracks.
     """
 
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(6, 4))
     dt = env_args['dt']
     max_timesteps = env_args['max_timesteps']
     x_axis = np.linspace(0, dt*max_timesteps, max_timesteps-1)
