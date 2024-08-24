@@ -21,13 +21,13 @@ try:
 except KeyError:
     WANDB_DIR = None
 env_args = {
-    'dt': 0.1,
+    'dt': 0.5,
     'alpha_mem': 0.7,
-    'max_timesteps': 1000
+    'max_timesteps': 200
 }    
 
 def main(log_dir='tf_logs', device='auto'):
-    total_timesteps = 200_000
+    total_timesteps = 500_000
     runs_per_hparam = 1
     avg_auc = 0
 
@@ -42,9 +42,8 @@ def main(log_dir='tf_logs', device='auto'):
             cfg = run.config
             print(run.id)
             config = cfg.as_dict()
-            frames = 2*config.pop('frames')
+            frames = config.pop('frames')
             wandb.log({'frames': frames})
-            wandb.log({'gamma': 1.0})
 
             env = Monitor(CellEnv(frame_stack=frames, **env_args))
             # eval_env = Monitor(
@@ -59,7 +58,7 @@ def main(log_dir='tf_logs', device='auto'):
             # Choose the algo appropriately
             agent = DQN('MlpPolicy',
                         env, 
-                        gamma=1.0,
+                        gamma=0.99
                         **config,
                         device=device,
                         tensorboard_log=log_dir)
@@ -82,7 +81,7 @@ if __name__ == '__main__':
     # Run a hyperparameter sweep with W&B
     print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/ruv9zcr7'  # Ensure this is the correct sweep ID
+    sweep_id = 'jacobhadamczyk/iaifi-hackathon/7l5dd4d4'  # Ensure this is the correct sweep ID
     wandb.agent(sweep_id, function=main, count=args.count)
     wandb.finish()
 
