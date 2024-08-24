@@ -42,8 +42,9 @@ def main(log_dir='tf_logs', device='auto'):
             cfg = run.config
             print(run.id)
             config = cfg.as_dict()
-            frames = config.pop('frames')
+            frames = 2*config.pop('frames')
             wandb.log({'frames': frames})
+            wandb.log({'gamma': 1.0})
 
             env = Monitor(CellEnv(frame_stack=frames, **env_args))
             # eval_env = Monitor(
@@ -57,7 +58,10 @@ def main(log_dir='tf_logs', device='auto'):
                              )
             # Choose the algo appropriately
             agent = DQN('MlpPolicy',
-                        env, **config, device=device,
+                        env, 
+                        gamma=1.0,
+                        **config,
+                        device=device,
                         tensorboard_log=log_dir)
 
 
