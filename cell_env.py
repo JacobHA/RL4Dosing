@@ -32,9 +32,12 @@ class CellEnv(gym.Env):
         if self.step_count == self.max_timesteps:
             truncated = True
             cost = 0
-            tot = None
+            tot = 1
+            res_fraction = 0
+
         else:
-            t, tot, cost = self.cell_population.simulate_population(action, delta_t=self.dt, plot=False)
+            t, tot, N, R, cost = self.cell_population.simulate_population(action, delta_t=self.dt, plot=False)
+            res_fraction = R / tot
             tot = np.mean(tot)
 
         # Add to the state:
@@ -42,7 +45,7 @@ class CellEnv(gym.Env):
         # Calculate reward
         reward = -cost
 
-        return np.array(self.stacked_states, dtype=np.float32), reward, False, truncated, {'n_cells': tot}
+        return np.array(self.stacked_states, dtype=np.float32), reward, False, truncated, {'n_cells': tot, 'res_fraction': res_fraction}
 
     def reset(self, seed=None):
         self.step_count = 0

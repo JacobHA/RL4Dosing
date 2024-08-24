@@ -3,31 +3,44 @@ import numpy as np
 from gymnasium.wrappers import TimeLimit
 from cell_env import CellEnv
 import multiprocessing as mp
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, PPO
 
 
 def run_episode(env_args, model_str=None):
     # Initialize the environment
     env = CellEnv(**env_args)
-    if model_str is not None:
-        model = DQN.load(model_str)
+    hardcoded = ['on', 'off', 'random', 'optimal']
+    if model_str not in hardcoded:
+        try:
+            model = DQN.load(model_str)
+        except:
+            model = PPO.load(model_str)
 
     done = False
     obs, _ = env.reset()
-    episode_observations = []
+    num_cells = []
+    cell_fractions = []
     action_sequence = []
     while not done:
-        if model_str is not None:
+        if model_str not in hardcoded:
             action, _states = model.predict(obs)
         else:
-            action = env.action_space.sample()
+            if model_str == 'random':
+                action = env.action_space.sample()
+            elif model_str == 'optimal':
+                raise NotImplementedError
+            elif model_str == 'on':
+                action = 1
+            elif model_str == 'off':
+                action = 0
         obs, rewards, term, trunc, info = env.step(action)
         done = term or trunc
         if not done:
-            episode_observations.append(info['n_cells'])
+            num_cells.append(info['n_cells'])
+            cell_fractions.append(info['res_fraction'][-1])
             action_sequence.append(action)
     
-    return episode_observations, action_sequence
+    return num_cells, action_sequence, cell_fractions
 
 def evaluate_model(env_args, num_episodes, model_str=None, multiprocess=False):
     """
@@ -43,30 +56,37 @@ def evaluate_model(env_args, num_episodes, model_str=None, multiprocess=False):
     - avg_observations: Average observations at each step.
     - all_observations: List of observations for all episodes.
     """
-    all_observations = []
-    all_actions = []
+
 
     if multiprocess:
         with mp.Pool(mp.cpu_count() - 1) as pool:
             results = pool.starmap(run_episode, [(env_args, model_str)] * num_episodes)
    
         # Unpack the results
-        all_observations, all_actions = zip(*results)
+        all_observations, all_actions, all_fractions = zip(*results)
     
     else:
+        all_observations = []
+        all_actions = []
+        all_fractions = []
         # load the model and env:
         eval_env = CellEnv(**env_args)
-        model = DQN.load(model_str)
+        try:
+            model = DQN.load(model_str)
+        except:
+            model = PPO.load(model_str)
 
         for _ in range(num_episodes):
-            obs, actions = run_episode(eval_env, model)
+            obs, actions, fractions = run_episode(eval_env, model)
             all_observations.append(obs)
             all_actions.append(actions)
+            all_fractions.append(fractions)
 
     # convert to numpy arrays
     all_observations = np.array(all_observations)
     all_actions = np.array(all_actions)
-    return all_observations, all_actions
+    all_fractions = np.array(all_fractions)
+    return all_observations, all_actions, all_fractions
 
 
 def plot_observations(env_args: dict, 
