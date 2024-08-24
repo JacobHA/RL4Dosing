@@ -50,7 +50,7 @@ def main(log_dir='tf_logs', device='auto'):
             #     DummyVecEnv([lambda: CellEnv(frame_stack=frames, **env_args)]))
             eval_env = Monitor(CellEnv(frame_stack=frames, **env_args))
 
-            eval_callback = EvalCallback(eval_env, best_model_save_path=f'.sweep-models/{run.name}/',
+            eval_callback = EvalCallback(eval_env, best_model_save_path=f'{WANDB_DIR}/sweep-models/{run.name}/',
                              n_eval_episodes=10,
                              log_path='./rl-logs/', eval_freq=5000,
                              deterministic=True, render=False,
@@ -58,7 +58,7 @@ def main(log_dir='tf_logs', device='auto'):
             # Choose the algo appropriately
             agent = DQN('MlpPolicy',
                         env, 
-                        gamma=0.99
+                        gamma=0.99,
                         **config,
                         device=device,
                         tensorboard_log=log_dir)
