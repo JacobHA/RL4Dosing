@@ -22,12 +22,12 @@ except KeyError:
     WANDB_DIR = None
 env_args = {
     'dt': 0.5,
-    'alpha_mem': 0.7,
+    'alpha_mem': 1.0,
     'max_timesteps': 200
 }    
 
 def main(log_dir='tf_logs', device='auto'):
-    total_timesteps = 500_000
+    total_timesteps = 150_000
     runs_per_hparam = 1
     avg_auc = 0
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     # Run a hyperparameter sweep with W&B
     print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/7l5dd4d4'  # Ensure this is the correct sweep ID
+    sweep_id = 'jacobhadamczyk/iaifi-hackathon/nfqn4zkz'  # Ensure this is the correct sweep ID
     wandb.agent(sweep_id, function=main, count=args.count)
     wandb.finish()
 
