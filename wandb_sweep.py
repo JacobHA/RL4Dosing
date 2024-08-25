@@ -45,10 +45,10 @@ def main(log_dir='tf_logs', device='auto'):
             frames = config.pop('frames')
             wandb.log({'frames': frames})
 
-            env = Monitor(CellEnv(frame_stack=frames, **env_args))
+            env = Monitor(CellEnv(frame_stack=frames, **env_args), info_keywords=('n_cells', 'res_fraction'))
             # eval_env = Monitor(
             #     DummyVecEnv([lambda: CellEnv(frame_stack=frames, **env_args)]))
-            eval_env = Monitor(CellEnv(frame_stack=frames, **env_args))
+            eval_env = Monitor(CellEnv(frame_stack=frames, **env_args), info_keywords=('n_cells', 'res_fraction'))
 
             eval_callback = EvalCallback(eval_env, best_model_save_path=f'{WANDB_DIR}/sweep-models/{run.name}/',
                              n_eval_episodes=10,
