@@ -20,14 +20,18 @@ try:
     WANDB_DIR = os.environ['WANDB_DIR']
 except KeyError:
     WANDB_DIR = None
+
+
+DT = 0.01
+max_time = int(100 / DT)
 env_args = {
-    'dt': 0.5,
-    'alpha_mem': 1.0,
-    'max_timesteps': 200
+    'dt': DT,
+    'alpha_mem': 0.7,
+    'max_timesteps': max_time
 }    
 
 def main(log_dir='tf_logs', device='auto'):
-    total_timesteps = 150_000
+    total_timesteps = 200_000
     runs_per_hparam = 1
     avg_auc = 0
 
@@ -44,6 +48,11 @@ def main(log_dir='tf_logs', device='auto'):
             config = cfg.as_dict()
             frames = config.pop('frames')
             wandb.log({'frames': frames})
+            wandb.log({'terminating': 'True'})
+            wandb.log({'truncating as terminate': 'True'})
+            gamma = 1
+            wandb.log({'gamma': gamma})
+            wandb.log({'dt': DT})
 
             env = Monitor(CellEnv(frame_stack=frames, **env_args))
             # eval_env = Monitor(
@@ -51,14 +60,14 @@ def main(log_dir='tf_logs', device='auto'):
             eval_env = Monitor(CellEnv(frame_stack=frames, **env_args))
 
             eval_callback = EvalCallback(eval_env, best_model_save_path=f'{WANDB_DIR}/sweep-models/{run.name}/',
-                             n_eval_episodes=10,
-                             log_path='./rl-logs/', eval_freq=5000,
+                             n_eval_episodes=3,
+                             log_path='./rl-logs/', eval_freq=3000,
                              deterministic=True, render=False,
                              )
             # Choose the algo appropriately
             agent = DQN('MlpPolicy',
                         env, 
-                        gamma=0.99,
+                        gamma=gamma,
                         **config,
                         device=device,
                         tensorboard_log=log_dir)
@@ -81,7 +90,7 @@ if __name__ == '__main__':
     # Run a hyperparameter sweep with W&B
     print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/nfqn4zkz'  # Ensure this is the correct sweep ID
+    sweep_id = 'jacobhadamczyk/iaifi-hackathon/7l5dd4d4'  # Ensure this is the correct sweep ID
     wandb.agent(sweep_id, function=main, count=args.count)
     wandb.finish()
 
