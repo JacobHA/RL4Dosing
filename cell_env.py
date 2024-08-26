@@ -32,6 +32,7 @@ class CellEnv(gym.Env):
         terminated = False
         if self.step_count == self.max_timesteps:
             truncated = True
+            terminated = True
             cost = 0
             tot = 1
             res_fraction = 0
