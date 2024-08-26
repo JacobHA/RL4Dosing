@@ -56,7 +56,7 @@ class CellEnv(gym.Env):
     def reset(self, seed=None):
         self.step_count = 0
         self.seed(seed)
-        self.cell_population.initialize(h=2**(-5))
+        self.cell_population.initialize(h=2**(-7))
         state = 0.0
         n_cells = self.cell_population.init_conditions.sum()
 
