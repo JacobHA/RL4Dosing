@@ -23,7 +23,7 @@ def run_episode(env_args, model_str=None):
     action_sequence = []
     while not done:
         if model_str not in hardcoded:
-            action, _states = model.predict(obs)
+            action, _states = model.predict(obs, deterministic=True)
         else:
             if model_str == 'random':
                 action = env.action_space.sample()
