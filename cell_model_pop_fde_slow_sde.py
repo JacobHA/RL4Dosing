@@ -203,7 +203,7 @@ class Cell_Population:
         if plot:
             return t, S, N, R
         else:
-            return t, S, cost
+            return t, S, N, R, cost
 
 
     ##################################
