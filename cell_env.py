@@ -53,10 +53,10 @@ class CellEnv(gym.Env):
 
         return np.array(self.stacked_states, dtype=np.float32), reward, terminated, truncated, {'n_cells': tot, 'res_fraction': res_fraction}
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, h=2**(-7)):
         self.step_count = 0
         self.seed(seed)
-        self.cell_population.initialize(h=2**(-7))
+        self.cell_population.initialize(h=h)
         state = 0.0
         n_cells = self.cell_population.init_conditions.sum()
 

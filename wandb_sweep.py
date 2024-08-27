@@ -50,7 +50,7 @@ def main(log_dir='tf_logs', device='auto'):
             wandb.log({'frames': frames})
             wandb.log({'terminating': 'True'})
             wandb.log({'truncating as terminate': 'True'})
-            gamma = 1
+            gamma = 0.9995
             wandb.log({'gamma': gamma})
             wandb.log({'dt': DT})
 
