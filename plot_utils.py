@@ -104,8 +104,9 @@ def plot_observations(env_args: dict,
     """
     plt.figure(figsize=(6, 4))
     dt = env_args['dt']
-    max_timesteps = env_args['max_timesteps']
-    x_axis = np.linspace(0, dt*max_timesteps, max_timesteps-1)
+    # max_timesteps = env_args['max_timesteps']
+    max_timesteps = all_observations.shape[1]
+    x_axis = np.linspace(0, dt*max_timesteps, max_timesteps)
     
     # Plot individual episode tracks with lower alpha
     for obs in all_observations:
