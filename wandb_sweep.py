@@ -86,12 +86,13 @@ if __name__ == '__main__':
     args = argparse.ArgumentParser()
     args.add_argument('--count', type=int, default=100)
     args = args.parse_args()
-
-    # Run a hyperparameter sweep with W&B
-    print("Running a sweep on W&B...")
     wandb.login()  # Ensure you are logged in to W&B
-    sweep_id = 'jacobhadamczyk/iaifi-hackathon/7l5dd4d4'  # Ensure this is the correct sweep ID
-    wandb.agent(sweep_id, function=main, count=args.count)
-    wandb.finish()
+    for _ in range(10):
+        # Run a hyperparameter sweep with W&B
+        print("Running a sweep on W&B...")
+
+        sweep_id = 'jacobhadamczyk/iaifi-hackathon/dkev450q'  # Ensure this is the correct sweep ID
+        wandb.agent(sweep_id, function=main, count=args.count)
+        wandb.finish()
 
 

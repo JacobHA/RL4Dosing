@@ -40,7 +40,7 @@ class CellEnv(gym.Env):
         else:
             t, tot, N, R, cost = self.cell_population.simulate_population(action, delta_t=self.dt, plot=False)
             res_fraction = R / tot
-            tot = np.mean(tot)
+            tot = tot[-1] # most recent cell count in entire simulation
 
         if tot >= 1000:
             reward = -10
