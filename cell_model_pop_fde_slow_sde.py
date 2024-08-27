@@ -62,6 +62,7 @@ class Cell_Population:
             N0 = rdm.randint(100,1000)
         else:
             N0 = 1000
+        self.S0 = N0
         R0 = 0
         y0 = np.array([[N0, R0]]).T
         self.init_conditions = y0
@@ -192,16 +193,17 @@ class Cell_Population:
         S = N + R
 
         # get reward
-        p_init = S[0]
+        p_init = self.S0
         p_final = S[-1]
 
         growth_rate = (np.log(p_final) - np.log(p_init)) / self.delta_t
         cost = growth_rate
+        self.S0 = p_final
 
         if plot:
             return t, S, N, R
         else:
-            return t, S, N, R, cost
+            return t, S, cost
 
 
     ##################################
