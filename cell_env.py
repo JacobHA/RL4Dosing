@@ -43,7 +43,6 @@ class CellEnv(gym.Env):
             tot = tot[-1] # most recent cell count in entire simulation
 
         if tot >= 1000:
-            reward = -10
             terminated = True
 
         # Add to the state:
