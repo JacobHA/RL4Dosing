@@ -4,7 +4,31 @@ import torch as th
 import numpy as np
 
 
+def get_exp_fn(start: float, end: float, fraction: float):
+    """
+    Create a function that exponentially decays from `start` to `end` over `fraction` of the total number of steps.
+    """
+
+    def exp_fn(progress_remaining: float) -> float:
+        # return (start - end) * np.exp(-1.0 * progress_remaining / fraction) + end
+        return np.exp(-(1 - progress_remaining) / fraction)
+
+    return exp_fn
+
+
 class DoubleDQN(DQN):
+
+    def _setup_model(self) -> None:
+        super()._setup_model()
+        self._create_aliases()
+        # Copy running stats, see GH issue #996
+        
+        self.exploration_schedule = get_exp_fn(
+            self.exploration_initial_eps,
+            self.exploration_final_eps,
+            self.exploration_fraction,
+        )
+
     def train(self, gradient_steps: int, batch_size: int = 100) -> None:
         # Switch to train mode (this affects batch norm / dropout)
         self.policy.set_training_mode(True)

@@ -25,11 +25,7 @@ except KeyError:
 DT = 0.01
 alpha = 0.8
 max_time = int(100 / DT)
-env_args = {
-    'dt': DT,
-    'alpha_mem': alpha,
-    'max_timesteps': max_time
-}    
+
 
 def main(log_dir='tf_logs', device='auto'):
     total_timesteps = 300_000
@@ -52,6 +48,15 @@ def main(log_dir='tf_logs', device='auto'):
             wandb.log({'truncating as terminate': 'True'})
             wandb.log({'alpha': alpha})
             wandb.log({'dt': DT})
+            # check if dt is in config
+            if 'dt' in config:
+                dt = config['dt']
+                max_time = int(100 / dt)
+                # reassign the max_time
+                env_args = {
+                    "max_timesteps": max_time,
+                    "dt": dt,
+                }
 
             env = Monitor(CellEnv(frame_stack=frames, **env_args))
             eval_env = Monitor(CellEnv(frame_stack=frames, **env_args))
