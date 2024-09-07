@@ -4,7 +4,7 @@ from gymnasium.wrappers import TimeLimit
 from cell_env import CellEnv
 import multiprocessing as mp
 from stable_baselines3 import DQN, PPO
-
+import tqdm
 
 def run_episode(env_args, model_str=None):
     # Initialize the environment
@@ -21,24 +21,27 @@ def run_episode(env_args, model_str=None):
     num_cells = []
     cell_fractions = []
     action_sequence = []
-    while not done:
-        if model_str not in hardcoded:
-            action, _states = model.predict(obs, deterministic=True)
-        else:
-            if model_str == 'random':
-                action = env.action_space.sample()
-            elif model_str == 'optimal':
-                raise NotImplementedError
-            elif model_str == 'on':
-                action = 1
-            elif model_str == 'off':
-                action = 0
-        obs, rewards, term, trunc, info = env.step(action)
-        done = term or trunc
-        if not done:
-            num_cells.append(info['n_cells'])
-            cell_fractions.append(info['res_fraction'][-1])
-            action_sequence.append(action)
+    # Use tqdm for progress bar
+    with tqdm.tqdm(total=env_args['max_timesteps']) as pbar:
+        while not done:
+            if model_str not in hardcoded:
+                action, _states = model.predict(obs, deterministic=True)
+            else:
+                if model_str == 'random':
+                    action = env.action_space.sample()
+                elif model_str == 'optimal':
+                    raise NotImplementedError
+                elif model_str == 'on':
+                    action = 1
+                elif model_str == 'off':
+                    action = 0
+            obs, rewards, term, trunc, info = env.step(action)
+            done = term or trunc
+            if not done:
+                num_cells.append(info['n_cells'])
+                cell_fractions.append(info['res_fraction'][-1])
+                action_sequence.append(action)
+            pbar.update(1)
     
     return num_cells, action_sequence, cell_fractions
 
@@ -69,15 +72,9 @@ def evaluate_model(env_args, num_episodes, model_str=None, multiprocess=False):
         all_observations = []
         all_actions = []
         all_fractions = []
-        # load the model and env:
-        eval_env = CellEnv(**env_args)
-        try:
-            model = DQN.load(model_str)
-        except:
-            model = PPO.load(model_str)
 
         for _ in range(num_episodes):
-            obs, actions, fractions = run_episode(eval_env, model)
+            obs, actions, fractions = run_episode(env_args, model_str=model_str)
             all_observations.append(obs)
             all_actions.append(actions)
             all_fractions.append(fractions)
