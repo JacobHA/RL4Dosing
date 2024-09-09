@@ -9,3 +9,5 @@ wandb
 outfiles
 *.sh
 data
+.sweep-models
+rl-models*
