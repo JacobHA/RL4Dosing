@@ -19,7 +19,7 @@ int_hparams = {'train_freq', 'gradient_steps'}
 try:
     WANDB_DIR = os.environ['WANDB_DIR']
 except KeyError:
-    WANDB_DIR = None
+    WANDB_DIR = 'wandb_logs'
 
 
 DT = 0.01
@@ -27,62 +27,55 @@ alpha = 0.8
 max_time = int(100 / DT)
 
 
-def main(log_dir='tf_logs', device='auto'):
+def main(device='auto'):
     total_timesteps = 300_000
-    runs_per_hparam = 1
     avg_auc = 0
 
-    for i in range(runs_per_hparam):
-        with wandb.init(sync_tensorboard=True, 
-                        # id=unique_id,
-                        dir=WANDB_DIR,
-                        # sweep_config=sweep_config,
-                        # project='iaifi-hackathon',
-                        ) as run:  # Ensure sweep_id is specified
-            cfg = run.config
-            print(run.id)
-            config = cfg.as_dict()
-            frames = config.pop('frames')
-            wandb.log({'frames': frames})
-            wandb.log({'terminating': 'True'})
-            wandb.log({'truncating as terminate': 'True'})
-            wandb.log({'alpha': alpha})
-            wandb.log({'dt': DT})
-            # check if dt is in config
-            if 'dt' in config:
-                dt = config['dt']
-                max_time = int(100 / dt)
-                # reassign the max_time
-                env_args = {
-                    "max_timesteps": max_time,
-                    "dt": dt,
-                }
+    with wandb.init(sync_tensorboard=True, 
+                    dir=WANDB_DIR,
+                    ) as run:
+        cfg = run.config
+        config = cfg.as_dict()
+        frames = config.pop('frames')
+        wandb.log({'frames': frames})
+        wandb.log({'terminating': 'True'})
+        wandb.log({'truncating as terminate': 'True'})
+        wandb.log({'alpha': alpha})
+        wandb.log({'dt': DT})
+        # check if dt is in config
+        if 'dt' in config:
+            dt = config['dt']
+            max_time = int(100 / dt)
+            # reassign the max_time
+            env_args = {
+                "max_timesteps": max_time,
+                "dt": dt,
+            }
 
-            env = Monitor(CellEnv(frame_stack=frames, **env_args))
-            eval_env = Monitor(CellEnv(frame_stack=frames, **env_args))
+        env = Monitor(CellEnv(frame_stack=frames, **env_args))
+        eval_env = Monitor(CellEnv(frame_stack=frames, **env_args))
 
-            eval_callback = EvalCallback(eval_env, best_model_save_path=f'{WANDB_DIR}/sweep-models/{run.name}/',
-                             n_eval_episodes=3,
-                             log_path='./rl-logs/', eval_freq=10_000,
-                             deterministic=True, render=False,
-                             )
-            # Choose the algo appropriately
-            agent = DoubleDQN('MlpPolicy',
-                        env,
-                        train_freq=(1, "episode"),
-                        **config,
-                        device=device,
-                        tensorboard_log=log_dir)
+        eval_callback = EvalCallback(eval_env, best_model_save_path=f'{WANDB_DIR}/sweep-models/{run.name}/',
+                            n_eval_episodes=3,
+                            log_path='./rl-logs/', eval_freq=10_000,
+                            deterministic=True, render=False,
+                            )
+
+        agent = DoubleDQN('MlpPolicy',
+                    env,
+                    train_freq=(1, "episode"),
+                    **config,
+                    device=device,
+                    tensorboard_log=WANDB_DIR)
 
 
-            agent.learn(total_timesteps=total_timesteps, tb_log_name="dqn",
-                        callback=eval_callback)
+        agent.learn(total_timesteps=total_timesteps, tb_log_name="dqn",
+                    callback=eval_callback)
 
-            # log the sum of eval rewards
-            avg_auc += eval_callback.best_mean_reward
-            wandb.log({'avg_auc': avg_auc / (i + 1)})
+        best_eval = eval_callback.best_mean_reward
+        wandb.log({'best_eval': best_eval})
 
-            del agent
+        del agent
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser()
@@ -92,8 +85,12 @@ if __name__ == '__main__':
     for _ in range(10):
         # Run a hyperparameter sweep with W&B
         print("Running a sweep on W&B...")
-
-        sweep_id = 'jacobhadamczyk/iaifi-hackathon/tysoozhs'  # Ensure this is the correct sweep ID
+        USERNAME = os.getenv("WANDB_USERNAME", "enter_username_here")
+        PROJECT_NAME = os.getenv("WANDB_PROJECT", "enter_project_name_here")
+        SWEEP_ID = os.getenv("WANDB_SWEEP_ID", "enter_sweep_id_here")
+        sweep_id = f'{USERNAME}/{PROJECT_NAME}/{SWEEP_ID}'  
+        # Ensure this is the correct sweep ID by accessing
+        # https://wandb.ai/{USERNAME}/{PROJECT_NAME}/sweeps/{SWEEP_ID}
         wandb.agent(sweep_id, function=main, count=args.count)
         wandb.finish()
 

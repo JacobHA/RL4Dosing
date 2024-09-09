@@ -3,7 +3,7 @@ import numpy as np
 from gymnasium.wrappers import TimeLimit
 from cell_env import CellEnv
 import multiprocessing as mp
-from stable_baselines3 import DQN, PPO
+from stable_baselines3 import DQN
 import tqdm
 
 def run_episode(env_args, model_str=None):
@@ -14,8 +14,7 @@ def run_episode(env_args, model_str=None):
         try:
             model = DQN.load(model_str)
         except:
-            model = PPO.load(model_str)
-
+            raise ValueError(f"Model {model_str} not found.")
     done = False
     obs, _ = env.reset()
     num_cells = []
@@ -101,7 +100,6 @@ def plot_observations(env_args: dict,
     """
     plt.figure(figsize=(6, 4))
     dt = env_args['dt']
-    # max_timesteps = env_args['max_timesteps']
     max_timesteps = all_observations.shape[1]
     x_axis = np.linspace(0, dt*max_timesteps, max_timesteps)
     
