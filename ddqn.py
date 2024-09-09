@@ -4,28 +4,27 @@ import torch as th
 import numpy as np
 
 
-def get_exp_fn(start: float, end: float, fraction: float):
+def get_exp_fn(fraction: float):
     """
     Create a function that exponentially decays from `start` to `end` over `fraction` of the total number of steps.
     """
 
     def exp_fn(progress_remaining: float) -> float:
-        # return (start - end) * np.exp(-1.0 * progress_remaining / fraction) + end
         return np.exp(-(1 - progress_remaining) / fraction)
 
     return exp_fn
 
 
 class DoubleDQN(DQN):
-
+    """
+    Subclass of SB3 DQN that implements the Double DQN algorithm, with exponential exploration schedule.
+    """
     def _setup_model(self) -> None:
         super()._setup_model()
         self._create_aliases()
         # Copy running stats, see GH issue #996
         
         self.exploration_schedule = get_exp_fn(
-            self.exploration_initial_eps,
-            self.exploration_final_eps,
             self.exploration_fraction,
         )
 
@@ -68,8 +67,6 @@ class DoubleDQN(DQN):
 
             # Compute loss (L2 or Huber loss)
             loss = F.smooth_l1_loss(current_q_values, target_q_values)
-
-            ### END OF YOUR CODE
             
             losses.append(loss.item())
 

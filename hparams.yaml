@@ -1,24 +1,28 @@
 method: random
 parameters:
+  gamma:
+    values: [ 0.999 ]
   batch_size:
-    values: [ 16, 32, 64, 128 ]
+    values: [ 16, 32, 64 ]
   buffer_size:
-    values: [ 10000, 100000 ]
+    values: [ 100000 ]
   gradient_steps:
-    values: [ 1, 2, 4, 10 ]
+    values: [ -1 ]
   learning_rate:
     distribution: uniform
-    max: 0.01
-    min: 0.0001
+    max: 0.001
+    min: 0.00001
   target_update_interval:
-    values: [ 100, 500, 1000, 2000, 5000, 10000 ]
+    values: [ 1000, 5000, 10000, 30000 ]
   train_freq:
     values: [ 1 ]
   learning_starts:
-    values: [ 0, 5000 ]
+    values: [ 0, 10000 ]
   exploration_fraction:
     distribution: uniform
-    max: 0.8
-    min: 0.25
+    max: 0.2
+    min: 0.01
+  tau:
+    values: [ 0.95, 0.99, 0.995, 1.0 ]
   frames:
-    values: [ 5, 10, 20, 30, 40, 50 ]
+    values: [ 5 ]
