@@ -1,4 +1,4 @@
-Welcome to the code for our NeurIPS workshop paper!
+Welcome to the code for our ICLR paper!
 "Reinforcement Learning for Control of Non-Markovian Cellular Population Dynamics" by Josiah Kratz and Jacob Adamczyk
 
 In this repository, you will find model code to run the dynamical system with FDEs, a Gymnasium Environment class based on the cellular dynamics with dosing, and a basic harness for hyperparameter sweeping and testing. Below is a brief summary of each file's function:
